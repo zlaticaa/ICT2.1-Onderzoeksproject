@@ -4,7 +4,7 @@
 #include <cstring>
 #include "socket.h"
 
-#define PORT 8080
+#define PORT 1721
 
 int main() {
     std::cout << "UDP Server!\n";

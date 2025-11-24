@@ -3,10 +3,23 @@
 #include <vector>
 #include <cstring>
 #include "socket.h"
+#include <fstream>
+#include <sstream>
+#include <chrono>
+#include "./ping.h"
+#include <algorithm>
 
 #define PORT 1721
+#define MTU 1500
 
 int main() {
+    
+    std::vector<ping> msges;
+    __int64 msgCount = 0;
+    float average = 0;
+    auto averageTripTime = [&msgCount,&average](ping& msg) {
+        average += static_cast<float>(msg.GetMillis() / msgCount); 
+    };
     std::cout << "UDP Server!\n";
     std::cout << __DATE__ << " " << __TIME__ << std::endl;
 #ifdef _WIN32
@@ -34,7 +47,7 @@ int main() {
     std::cout << "UDP Server listening on port " << PORT << "...\n";
 
 
-    char buffer[1024];
+    char buffer[4096];
     sockaddr_in clientAddr{};
     socklen_t clientLen = sizeof(clientAddr);
 
@@ -60,6 +73,15 @@ int main() {
     WSACleanup();
 #endif
 
+    
+    std::ofstream csvFile("./data.csv",std::ios::app);
+    if (!csvFile.is_open()) csvFile.open("./data.csv");
+    msgCount = msges.size();
+    std::for_each(msges.begin(), msges.end(), averageTripTime);
+   
+    csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size()/100.0f);
+
+    csvFile.close();
     return 0;
 }
 

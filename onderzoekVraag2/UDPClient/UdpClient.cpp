@@ -2,6 +2,8 @@
 #include <string>
 #include "socket.h"
 #include <fstream>
+#include <chrono>
+#include <sstream>
 
 #define PORT 1721
 #define IP_ADDRESS "127.0.0.1"  //localhost loopback address
@@ -26,23 +28,32 @@ int main() {
     inet_pton(AF_INET, IP_ADDRESS, &serverAddr.sin_addr);
 
     while (true) {
-        std::string msg;
-        std::cout << "Enter message (or 'quit'): ";
-        std::getline(std::cin, msg);
-        if (msg == "quit") break;
+        
 
+
+        for (int i= 0; i < 100; i++) {
+            auto now = std::chrono::system_clock::now();
+            auto duration = now.time_since_epoch();
+            auto millisNow = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+            std::string msgi;
+            std::stringstream ss(msgi);
+            ss << millisNow.count() << " ";
+            //std::string msgi = time + " " + std::string(4096 - time.size() - 1, 'A');
+            sendto(clientSock, msgi.c_str(), (int)msgi.size(), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
+        }
+
+        std::string msg = "write";
         sendto(clientSock, msg.c_str(), (int)msg.size(), 0,
             (sockaddr*)&serverAddr, sizeof(serverAddr));
+        std::string out;
+        std::cout << "repeat test (or 'quit'): ";
+        std::getline(std::cin, out);
+        if (msg == "quit") break;
 
-        char buffer[1024];
+        char buffer[4096];
         sockaddr_in fromAddr{};
         socklen_t fromLen = sizeof(fromAddr);
-        int bytes = recvfrom(clientSock, buffer, sizeof(buffer) - 1, 0,
-            (sockaddr*)&fromAddr, &fromLen);
-        if (bytes > 0) {
-            buffer[bytes] = '\0';
-            std::cout << "Server says: " << buffer << "\n";
-        }
+        
     }
 
     closeSocket(clientSock);

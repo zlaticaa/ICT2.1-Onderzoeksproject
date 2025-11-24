@@ -20,6 +20,8 @@ int main() {
     auto averageTripTime = [&msgCount,&average](ping& msg) {
         average += static_cast<float>(msg.GetMillis() / msgCount); 
     };
+
+
     std::cout << "UDP Server!\n";
     std::cout << __DATE__ << " " << __TIME__ << std::endl;
 #ifdef _WIN32
@@ -47,24 +49,44 @@ int main() {
     std::cout << "UDP Server listening on port " << PORT << "...\n";
 
 
-    char buffer[4096];
     sockaddr_in clientAddr{};
     socklen_t clientLen = sizeof(clientAddr);
 
+    char buffer[4096];
     while (true) {
         int bytes = recvfrom(serverSock, buffer, sizeof(buffer) - 1, 0,
             (sockaddr*)&clientAddr, &clientLen);
         if (bytes < 0) break;
-
         buffer[bytes] = '\0';
 
         char clientIP[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, sizeof(clientIP));
         std::cout << "Received from " << clientIP << ": " << buffer << "\n";
+        std::string msg(buffer);
+        if (bytes > 0) {
+            if (!msg.compare("write") && msges.size() > 0) {
+                std::ofstream csvFile("./data.csv", std::ios::app);
+                if (!csvFile.is_open()) csvFile.open("./data.csv");
+                msgCount = msges.size();
+                std::for_each(msges.begin(), msges.end(), averageTripTime);
 
-        std::string reply = "Server reply: " + std::string(buffer);
-        sendto(serverSock, reply.c_str(), (int)reply.size(), 0,
-            (sockaddr*)&clientAddr, clientLen);
+                csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size() / 100.0f);
+
+                csvFile.close();
+                msges.clear();
+                average = 0;
+
+
+                std::string reply = "Server reply: results have been written" ;
+                sendto(serverSock, reply.c_str(), (int)reply.size(), 0,
+                    (sockaddr*)&clientAddr, clientLen);
+            }
+            else {
+                msges.push_back(msg);
+            }
+        }
+
+        
     }
 
     closeSocket(serverSock);
@@ -74,14 +96,7 @@ int main() {
 #endif
 
     
-    std::ofstream csvFile("./data.csv",std::ios::app);
-    if (!csvFile.is_open()) csvFile.open("./data.csv");
-    msgCount = msges.size();
-    std::for_each(msges.begin(), msges.end(), averageTripTime);
-   
-    csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size()/100.0f);
-
-    csvFile.close();
+    
     return 0;
 }
 

@@ -6,7 +6,7 @@
 #include <sstream>
 
 #define PORT 1721
-#define IP_ADDRESS "192.168.0.255"  //broadcast to port 1721 on your local area network
+#define IP_ADDRESS "192.168.137.255"  //broadcast to port 1721 on your local area network (change this to the ip of your personal hotspot)
 //#define MTU 1500 //the current MTU of this test run
 #define AmountOfPings 1000
 

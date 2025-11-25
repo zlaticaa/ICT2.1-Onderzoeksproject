@@ -8,6 +8,7 @@
 #define PORT 1721
 #define IP_ADDRESS "127.0.0.1"  //localhost loopback address
 #define MTU 1500 //the current MTU of this test run
+#define AmountOfPings 1000
 int main() {
     std::cout << "UDP CLient!\n";
     std::cout << __DATE__ << " " << __TIME__ << std::endl; // log date and time of compilation, not runtime
@@ -31,28 +32,32 @@ int main() {
         
 
 
-        for (int i= 0; i < 100; i++) {
+        for (int i= 0; i <AmountOfPings; i++) {
             auto now = std::chrono::system_clock::now();
             auto duration = now.time_since_epoch();
             auto millisNow = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-            std::string msgi;
-            std::stringstream ss(msgi);
-            ss << millisNow.count() << " ";
-            //std::string msgi = time + " " + std::string(4096 - time.size() - 1, 'A');
-            sendto(clientSock, msgi.c_str(), (int)msgi.size(), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
-        }
 
-        std::string msg = "write";
-        sendto(clientSock, msg.c_str(), (int)msg.size(), 0,
-            (sockaddr*)&serverAddr, sizeof(serverAddr));
+            std::stringstream msgPing;
+            msgPing << millisNow.count() << " " << std::string(1000, 'A') << std::string(1000, 'B') << std::string(1000, 'C') << std::string(1000, 'D');
+            
+            sendto(clientSock, msgPing.str().c_str(), msgPing.str().size(), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
+            Sleep(3);
+        }
+        while (true) {
+            std::string msg = "write";
+            sendto(clientSock, msg.c_str(), (int)msg.size(), 0,
+                (sockaddr*)&serverAddr, sizeof(serverAddr));
+
+            std::cout << "succesful write [y/n]: ";
+
+            std::string reply;
+            std::getline(std::cin, reply);
+            if (!reply.compare("y")) break;
+        }
         std::string out;
         std::cout << "repeat test (or 'quit'): ";
         std::getline(std::cin, out);
-        if (msg == "quit") break;
-
-        char buffer[4096];
-        sockaddr_in fromAddr{};
-        socklen_t fromLen = sizeof(fromAddr);
+        if (out == "quit") break;
         
     }
 

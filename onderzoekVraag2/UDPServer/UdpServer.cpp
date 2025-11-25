@@ -11,6 +11,7 @@
 
 #define PORT 1721
 #define MTU 1500
+#define AmountOfPings 1000
 
 int main() {
     
@@ -70,7 +71,7 @@ int main() {
                 msgCount = msges.size();
                 std::for_each(msges.begin(), msges.end(), averageTripTime);
 
-                csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size() / 100.0f);
+                csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size() / (float)AmountOfPings);
 
                 csvFile.close();
                 msges.clear();

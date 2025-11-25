@@ -7,13 +7,15 @@
 
 #define PORT 1721
 #define IP_ADDRESS "192.168.0.255"  //broadcast to port 1721 on your local area network
-#define MTU 1500 //the current MTU of this test run
+//#define MTU 1500 //the current MTU of this test run
 #define AmountOfPings 1000
 
 /*
     you have to change the mtu-value manually by running a command prompt as administrator and typing
     netsh interface ipv4 set subinterface "Wi-Fi" mtu=[MTU value] store=persistent
     for this test to work as intended you must use the same MTU as the server
+
+    the amount of pings and the mtu value need to be the same in both tests or the results might not be accurate
 */
 
 int main() {
@@ -42,10 +44,10 @@ int main() {
         for (int i= 0; i <AmountOfPings; i++) {
             auto now = std::chrono::system_clock::now();
             auto duration = now.time_since_epoch();
-            auto millisNow = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+            auto microsNow = std::chrono::duration_cast<std::chrono::microseconds>(duration);
 
             std::stringstream msgPing;
-            msgPing << millisNow.count() << " " << std::string(1000, 'A') << std::string(1000, 'B') << std::string(1000, 'C') << std::string(1000, 'D');
+            msgPing << microsNow.count() << " " << std::string(1000, 'A') << std::string(1000, 'B') << std::string(1000, 'C') << std::string(1000, 'D');
             
             sendto(clientSock, msgPing.str().c_str(), msgPing.str().size(), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
             Sleep(3);

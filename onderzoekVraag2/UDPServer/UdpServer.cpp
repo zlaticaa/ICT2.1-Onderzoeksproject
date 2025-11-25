@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #define PORT 1721
-#define MTU 1500
+#define MTU 500
 #define AmountOfPings 1000
 
 /*
@@ -23,9 +23,9 @@ int main() {
     
     std::vector<ping> msges;
     __int64 msgCount = 0;
-    float average = 0;
+    double average = 0;
     auto averageTripTime = [&msgCount,&average](ping& msg) {
-        average += static_cast<float>(msg.GetMillis() / msgCount); 
+        average += static_cast<double>(msg.GetMicros() / msgCount); 
     };
 
 

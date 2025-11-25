@@ -6,9 +6,16 @@
 #include <sstream>
 
 #define PORT 1721
-#define IP_ADDRESS "127.0.0.1"  //localhost loopback address
+#define IP_ADDRESS "192.168.0.255"  //broadcast to port 1721 on your local area network
 #define MTU 1500 //the current MTU of this test run
 #define AmountOfPings 1000
+
+/*
+    you have to change the mtu-value manually by running a command prompt as administrator and typing
+    netsh interface ipv4 set subinterface "Wi-Fi" mtu=[MTU value] store=persistent
+    for this test to work as intended you must use the same MTU as the server
+*/
+
 int main() {
     std::cout << "UDP CLient!\n";
     std::cout << __DATE__ << " " << __TIME__ << std::endl; // log date and time of compilation, not runtime

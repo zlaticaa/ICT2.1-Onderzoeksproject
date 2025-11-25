@@ -13,6 +13,12 @@
 #define MTU 1500
 #define AmountOfPings 1000
 
+/*
+    you have to change the mtu-value manually by running a command prompt as administrator and typing
+    netsh interface ipv4 set subinterface "Local Area Connection* 2" mtu=[MTU value] store=persistent
+    and then change the mtu value in the define
+*/
+
 int main() {
     
     std::vector<ping> msges;

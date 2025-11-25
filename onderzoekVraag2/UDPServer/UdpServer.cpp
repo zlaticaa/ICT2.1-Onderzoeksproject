@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #define PORT 1721
-#define MTU 500
+#define MTU 1500
 #define AmountOfPings 1000
 
 /*

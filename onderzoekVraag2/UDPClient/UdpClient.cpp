@@ -39,20 +39,23 @@ int main() {
 
     while (true) {
         
-
+        //sends an amount of pings equal AmountOfPings (in dit geval 1000)
 
         for (int i= 0; i <AmountOfPings; i++) {
+            //haalt de huidige tijd op
             auto now = std::chrono::system_clock::now();
             auto duration = now.time_since_epoch();
             auto microsNow = std::chrono::duration_cast<std::chrono::microseconds>(duration);
 
+            //maakt een stringstream om de msg te contrueren
             std::stringstream msgPing;
             msgPing << microsNow.count() << " " << std::string(1000, 'A') << std::string(1000, 'B') << std::string(1000, 'C') << std::string(1000, 'D');
-            
+            //verstuurt het bericht
             sendto(clientSock, msgPing.str().c_str(), msgPing.str().size(), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
             Sleep(3);
         }
         while (true) {
+            //stuurt een keer write en herhaalt als die niet aankomt bij de server
             std::string msg = "write";
             sendto(clientSock, msg.c_str(), (int)msg.size(), 0,
                 (sockaddr*)&serverAddr, sizeof(serverAddr));
@@ -63,6 +66,7 @@ int main() {
             std::getline(std::cin, reply);
             if (!reply.compare("y")) break;
         }
+        //herhaal de test behalve als de user stopt
         std::string out;
         std::cout << "repeat test (or 'quit'): ";
         std::getline(std::cin, out);

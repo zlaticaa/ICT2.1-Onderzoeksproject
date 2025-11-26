@@ -20,10 +20,10 @@
 */
 
 int main() {
-    
+    //een vector om de berichten in op te slaan
     std::vector<ping> msges;
-    __int64 msgCount = 0;
-    double average = 0;
+    __int64 msgCount = 0; //houd bij hoeveel berichten er op het moment inzitten
+    double average = 0; //is in principe de return van de lambda bevat de gemiddelde enkele reis tijd in microseconden als een double
     auto averageTripTime = [&msgCount,&average](ping& msg) {
         average += static_cast<double>(msg.GetMicros() / msgCount); 
     };
@@ -36,17 +36,19 @@ int main() {
     (void)WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
 
+    //creert een websocket
     SOCKET serverSock = socket(AF_INET, SOCK_DGRAM, 0);
     if (serverSock == INVALID_SOCKET) {
         std::cerr << "Cannot create socket\n";
         return 1;
     }
-
+    //laat de websocket elk ipaddress accepteren
     sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
+    //opent de websocket
     if (bind(serverSock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "Bind failed\n";
         closeSocket(serverSock);
@@ -61,34 +63,39 @@ int main() {
 
     char buffer[4096];
     while (true) {
+        //wacht tot er een bericht wordt ontvangen van een udp client
         int bytes = recvfrom(serverSock, buffer, sizeof(buffer) - 1, 0,
             (sockaddr*)&clientAddr, &clientLen);
         if (bytes < 0) break;
         buffer[bytes] = '\0';
 
+        //sla het ip adress van het client op en schrijf het bericht uit in de chat
         char clientIP[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, sizeof(clientIP));
         std::cout << "Received from " << clientIP << ": " << buffer << "\n";
+        
+        //verander de buffer intot een string om er manipulaties op uit te voeren
         std::string msg(buffer);
         if (bytes > 0) {
+            //check of the er minstens een ping object in msges zit (om te schrijven naar de csv) is en dat alleen het woord 'write' bevat
             if (!msg.compare("write") && msges.size() > 0) {
-                std::ofstream csvFile("./data.csv", std::ios::app);
-                if (!csvFile.is_open()) csvFile.open("./data.csv");
+                std::ofstream csvFile("./data.csv", std::ios::app); //opent de filestream
+                if (!csvFile.is_open()) csvFile.open("./data.csv"); //checkt of de filestream open is
+                //bereken de gemiddelde enkele reis tijd
                 msgCount = msges.size();
                 std::for_each(msges.begin(), msges.end(), averageTripTime);
 
+                //berekent de hoeveelheid gemissde berichten
+                //schrijft alle data naar de csvfile in csv format
                 csvFile << "\n" << MTU << ',' << average << ',' << static_cast<float>(msges.size() / (float)AmountOfPings);
 
+                //sluit de filestream en maakt alles klaar voor een 2de test
                 csvFile.close();
                 msges.clear();
                 average = 0;
-
-
-                std::string reply = "Server reply: results have been written" ;
-                sendto(serverSock, reply.c_str(), (int)reply.size(), 0,
-                    (sockaddr*)&clientAddr, clientLen);
             }
             else {
+                //indien write niet is gedaan voegt een ping object toe aan de lijst
                 msges.push_back(msg);
             }
         }
